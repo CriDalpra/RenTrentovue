@@ -1,14 +1,17 @@
 <script setup>
+import montagnaImg from '@/assets/images/montagna.png'
 </script>
 
 <template>
-  <div class="hero min-h-[50vh] bg-base-100 rounded-box shadow-xl mt-10">
-    <div class="hero-content text-center">
-      <div class="max-w-md">
-        <h1 class="text-5xl font-bold">Benvenuto!</h1>
-        <p class="py-6">Se leggi questo, Vue + Tailwind + DaisyUI funzionano correttamente.</p>
-        <button class="btn btn-primary">Bottone di Test</button>
-      </div>
+  <div class="relative h-full w-full overflow-hidden bg-base-200">
+    
+    <div class="absolute bottom-0 right-0 w-full h-full flex justify-end items-end pointer-events-none">
+      <img 
+        :src="montagnaImg" 
+        alt="Sfondo Montagna" 
+        class="w-[70%] h-auto max-h-full object-contain object-right-bottom" 
+      />
     </div>
+
   </div>
 </template>

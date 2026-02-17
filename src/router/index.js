@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import AccountView from '../views/AccountView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,8 +9,13 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView
+    },
+    {
+      path: '/home/account',
+      name: 'account',
+      component: AccountView
     }
-    // Puoi aggiungere altre rotte qui in futuro
+    
   ]
 })
 
