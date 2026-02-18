@@ -1,16 +1,23 @@
 <script setup>
 import { ref } from 'vue'
 import { RouterView, RouterLink, useRouter } from 'vue-router'
+// IMPORTANTE: Assicurati che il percorso sia corretto. 
+// Prima l'abbiamo creato in 'composables', non 'components'.
 import { useAuth } from '@/components/auth' 
 import logo from '@/assets/images/logo.png' 
 
 const router = useRouter()
-const { user } = useAuth() 
+// Recuperiamo anche la funzione logout
+const { user, logout } = useAuth() 
 const searchQuery = ref('')
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
-    router.push('/home/products')
+    router.push({ 
+      name: 'products', 
+      query: { category: searchQuery.value } 
+    })
+    
     searchQuery.value = '' 
   }
 }
@@ -27,15 +34,37 @@ const handleSearch = () => {
         </RouterLink>
       </div>
       
-      <div class="flex-none gap-4 flex items-center"> <div v-if="user" class="hidden md:block font-medium text-base-content/80">
+      <div class="flex-none gap-4 flex items-center">
+        
+        <div v-if="user" class="hidden md:block font-medium text-base-content/80">
           Benvenuto, <span class="font-bold text-primary">{{ user.name }}</span>
         </div>
 
-        <RouterLink to="/home/users" class="btn btn-ghost btn-circle avatar">
-          <div class="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-            <img src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp" alt="Profilo Utente" />
+        <div v-if="user" class="dropdown dropdown-end">
+          
+          <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+            <div class="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+              <img src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp" alt="Profilo Utente" />
+            </div>
           </div>
+          
+          <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+            <li>
+              <RouterLink to="/home/users/me" class="justify-between">
+                Il mio Profilo
+                <span class="badge badge-accent">New</span>
+              </RouterLink>
+            </li>
+            <li><RouterLink to="/home/account">Impostazioni</RouterLink></li>
+            <div class="divider my-0"></div> <li><a @click="logout" class="text-error font-bold">Esci</a></li>
+          </ul>
+
+        </div>
+
+        <RouterLink v-else to="/" class="btn btn-primary btn-sm">
+          Accedi
         </RouterLink>
+
       </div>
 
     </div>
