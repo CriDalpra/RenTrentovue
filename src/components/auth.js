@@ -7,7 +7,7 @@ const user = ref(storedUser ? JSON.parse(storedUser) : null)
 export function useAuth() {
   
   const login = (name) => {
-    // Simuliamo login (prendiamo solo la parte prima della @ se è una email)
+    //prendiamo solo la parte prima della @ se è una email
     const cleanName = name.includes('@') ? name.split('@')[0] : name
     
     const userData = { name: cleanName }
@@ -16,14 +16,14 @@ export function useAuth() {
   }
 
   const logout = () => {
-    // 1. Pulisce i dati
+    // Pulisce i dati
     user.value = null
     localStorage.removeItem('user')
     
-    // 2. RIPORTA ALLA HOME
+    // RIPORTA ALLA HOME
     router.push('/') 
     
-    // Oppure, se vuoi un "refresh" completo per pulire tutto, usa questo invece di router.push:
+    // Per un "refresh" completo per pulire tutto, potrei usare: (da valutare insime)
     // window.location.href = '/'
   }
 
