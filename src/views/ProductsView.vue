@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { apiFetch } from '@/services/api' // Importiamo la connessione al backend
+import { apiFetch } from '@/services/api' 
 
 const route = useRoute()
 

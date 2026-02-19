@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '@/components/auth' // Assicurati di aver aggiunto la funzione register qui dentro!
+import { useAuth } from '@/components/auth' 
 import montagnaImg from '@/assets/images/montagna.png'
 
 //importo anche register da usaAuth
