@@ -59,9 +59,6 @@ const handleSearch = () => {
 
         </div>
 
-        <RouterLink v-else to="/" class="btn btn-primary btn-sm">
-          Accedi
-        </RouterLink>
 
       </div>
 
