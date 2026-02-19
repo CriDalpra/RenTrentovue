@@ -1,15 +1,48 @@
 <script setup>
+import { ref, onMounted, reactive } from 'vue' 
+import { useAuth } from '@/components/auth' // <-- Assicurati che questo percorso sia corretto (composables o components)
 import { apiFetch } from '@/services/api'
+
+const { user, updateUser } = useAuth()
+
+const isEditing = ref(false)
+const formData = reactive({
+  name: '',
+  email: '',
+  phone: '',
+  location: '',
+  bio: ''
+})
+const wallet = ref(0)
 
 const newCategoryName = ref('')
 const categorySuccessMessage = ref('')
 
-//Funzione admin
+const startEditing = () => {
+  if (user.value) {
+    formData.name = user.value.name || ''
+    formData.email = user.value.email || ''
+    formData.phone = user.value.phone || ''
+    formData.location = user.value.location || ''
+    formData.bio = user.value.bio || ''
+  }
+  isEditing.value = true
+}
+
+const saveProfile = () => {
+  updateUser(formData)
+  isEditing.value = false
+}
+
+const cancelEditing = () => {
+  isEditing.value = false
+}
+
+// funzuione per l'admin
 const addCategory = async () => {
   if (!newCategoryName.value.trim()) return
 
   try {
-    
     await apiFetch('/categories', {
       method: 'POST',
       body: JSON.stringify({ categoryName: newCategoryName.value })
@@ -25,6 +58,11 @@ const addCategory = async () => {
     alert("Errore durante la creazione della categoria. Sei sicuro di essere admin?")
   }
 }
+
+//portafoglio finto
+onMounted(() => {
+  wallet.value = (Math.random() * 990 + 10).toFixed(2)
+})
 </script>
 
 <template>
@@ -55,7 +93,6 @@ const addCategory = async () => {
           </div>
 
           <div v-if="isEditing" class="flex flex-col gap-4">
-            
             <div class="form-control">
               <label class="label"><span class="label-text">Nome visualizzato</span></label>
               <input v-model="formData.name" type="text" class="input input-bordered" />
@@ -83,10 +120,9 @@ const addCategory = async () => {
             </div>
 
             <div class="flex gap-2 mt-4">
-              <button @click="saveProfile" class="btn btn-primary flex-1">Salva Modifiche</button>
+              <button @click="saveProfile" class="btn btn-primary flex-1">Salva</button>
               <button @click="cancelEditing" class="btn btn-ghost flex-1">Annulla</button>
             </div>
-
           </div>
 
           <div v-else class="text-center space-y-4">
@@ -109,8 +145,8 @@ const addCategory = async () => {
 
         </div>
       </div>
-
       <div class="flex-1 flex flex-col gap-6">
+        
         <div class="stats shadow bg-base-100 w-full">
           <div class="stat">
             <div class="stat-figure text-secondary">
@@ -134,39 +170,38 @@ const addCategory = async () => {
             <p class="text-xs mt-4 opacity-50">Iscritto dal: 18/02/2026</p>
           </div>
         </div>
-      </div>
 
-      <div v-if="user?.role === 'admin'" class="card bg-warning/20 shadow-xl border border-warning/50 mt-6">
-        <div class="card-body">
+        <div v-if="user?.role === 'admin'" class="card bg-warning/20 shadow-xl border border-warning/50">
+          <div class="card-body">
             <h3 class="card-title text-warning-content flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
-            </svg>
-            Amministrazione
+              </svg>
+              Amministrazione
             </h3>
             <p class="text-sm opacity-80 mb-2">Aggiungi una nuova categoria di prodotti al database.</p>
             
             <div class="form-control">
-            <div class="input-group flex gap-2">
+              <div class="input-group flex gap-2">
                 <input 
-                v-model="newCategoryName" 
-                type="text" 
-                placeholder="Es: Ciaspole" 
-                class="input input-bordered w-full" 
-                @keyup.enter="addCategory"
+                  v-model="newCategoryName" 
+                  type="text" 
+                  placeholder="Es: Ciaspole" 
+                  class="input input-bordered w-full" 
+                  @keyup.enter="addCategory"
                 />
                 <button @click="addCategory" class="btn btn-warning">Aggiungi</button>
-            </div>
+              </div>
             </div>
 
             <div v-if="categorySuccessMessage" class="alert alert-success mt-4 p-2 text-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span>{{ categorySuccessMessage }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span>{{ categorySuccessMessage }}</span>
             </div>
 
+          </div>
         </div>
         </div>
-
-    </div>
+      </div>
   </div>
 </template>
