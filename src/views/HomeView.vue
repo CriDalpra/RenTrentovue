@@ -1,24 +1,41 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '@/components/auth'
+import { useAuth } from '@/components/auth' // Assicurati di aver aggiunto la funzione register qui dentro!
 import montagnaImg from '@/assets/images/montagna.png'
 
-const { login, user } = useAuth()
+//importo anche register da usaAuth
+const { login, register, user } = useAuth()
 const router = useRouter()
 
+//false = Registrazione (default), true = Login
+const isLoginMode = ref(false) 
 
-// Variabili per i nuovi campi
+// Variabili per i campi
+const nameInput = ref('')
 const emailInput = ref('')
 const passwordInput = ref('')
-const showPassword = ref(false) // Per mostrare/nascondere la password
+const showPassword = ref(false)
 
-const handleLogin = () => {
-  if (emailInput.value.trim() && passwordInput.value.trim()) {
-    login(emailInput.value, passwordInput.value)
+const handleSubmit = async () => {
+  if (isLoginMode.value) {
     
-  } else {        //redirect viene fatto dentro auth.js solo se il server risponde positivamente!
-    alert("Compila entrambi i campi!")
+    if (emailInput.value.trim() && passwordInput.value.trim()) {
+      login(emailInput.value, passwordInput.value)
+    } else {
+      alert("Compila entrambi i campi!")
+    }
+  } else {
+    
+    if (nameInput.value.trim() && emailInput.value.trim() && passwordInput.value.trim()) {
+      try {
+        await register(nameInput.value, emailInput.value, passwordInput.value)
+      } catch (error) {
+        alert("Errore durante la registrazione. Riprova.")
+      }
+    } else {
+      alert("Compila tutti i campi per registrarti!")
+    }
   }
 }
 </script>
@@ -30,10 +47,25 @@ const handleLogin = () => {
       
       <div v-if="!user" class="card bg-base-100 shadow-xl">       
         <div class="card-body">
-          <h2 class="card-title text-2xl font-bold mb-4">Accedi</h2>
+          <h2 class="card-title text-2xl font-bold mb-4">
+            {{ isLoginMode ? 'Accedi' : 'Registrati' }}
+          </h2>
           
-          <form @submit.prevent="handleLogin">
+          <form @submit.prevent="handleSubmit">
             
+            <div v-if="!isLoginMode" class="form-control w-full mb-2">
+              <label class="label">
+                <span class="label-text">Nome</span>
+              </label>
+              <input 
+                type="text" 
+                placeholder="Es: Mario Rossi" 
+                class="input input-bordered w-full" 
+                v-model="nameInput"
+                required
+              />
+            </div>
+
             <div class="form-control w-full">
               <label class="label">
                 <span class="label-text">Email</span>
@@ -70,8 +102,22 @@ const handleLogin = () => {
             </div>
 
             <div class="card-actions justify-end mt-6">
-              <button type="submit" class="btn btn-primary w-full">Entra</button>
+              <button type="submit" class="btn btn-primary w-full">
+                {{ isLoginMode ? 'Entra' : 'Crea account' }}
+              </button>
             </div>
+
+            <div class="mt-4 text-center text-sm">
+              <span v-if="!isLoginMode">
+                Hai già un account? 
+                <a href="#" @click.prevent="isLoginMode = true" class="text-primary font-bold hover:underline">Accedi</a>
+              </span>
+              <span v-else>
+                Non hai un account? 
+                <a href="#" @click.prevent="isLoginMode = false" class="text-primary font-bold hover:underline">Registrati</a>
+              </span>
+            </div>
+
           </form>
         </div>
       </div>

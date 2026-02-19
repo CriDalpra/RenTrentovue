@@ -12,6 +12,29 @@ const user = ref(storedUser ? JSON.parse(storedUser) : null)
 
 export function useAuth() {
 
+  const register = async (name, email, password) => {
+    try {
+      //POST al backend per creare l'utente
+      const newUser = await apiFetch('/users', {
+        method: 'POST',
+        body: JSON.stringify({
+          userName: name,
+          role: 'user', //utente normale come roulo default
+          email: email,
+          password: password
+        })
+      })
+
+      //backend risponde con dati utente, login automatico e letzgo
+      if (newUser && newUser.email) {
+        await login(email, password)
+      }
+    } catch (error) {
+      console.error("Errore di registrazione:", error.message)
+      throw new Error("Impossibile creare l'account. Controlla i dati.")
+    }
+  }
+
   const login = async (email, password) => {
     try {
       const data = await apiFetch('/authentication', {
@@ -25,7 +48,7 @@ export function useAuth() {
         //In base al Token JWT scopro roulo utente
 
         const tokenPayload = JSON.parse(atob(data.token.split('.')[1]))
-        const userRole = tokenPayload.role // user o admin
+        const userRole = tokenPayload.role //user o admin
 
         const backendUser = await apiFetch('/users/me', { method: 'GET' })
 
@@ -70,6 +93,7 @@ export function useAuth() {
     user,
     login,
     logout,
-    updateUser
+    updateUser,
+    register
   }
 }

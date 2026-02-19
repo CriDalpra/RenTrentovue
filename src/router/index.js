@@ -4,6 +4,7 @@ import UsersView from '../views/UsersView.vue'
 import ProductsView from '../views/ProductsView.vue'
 import ProductDetailView from '../views/ProductDetailView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
+import RentalsView from '../views/RentalsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,6 +34,11 @@ const router = createRouter({
       path: '/home/users/:id',
       name: 'public-profile',
       component: PublicProfileView
+    },
+    {
+      path: '/users/me/rentals',
+      name: 'my-rentals',
+      component: RentalsView
     }
     
   ]

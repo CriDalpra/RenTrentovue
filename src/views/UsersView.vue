@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue' 
-import { useAuth } from '@/components/auth' // <-- Assicurati che questo percorso sia corretto (composables o components)
+import { useAuth } from '@/components/auth' 
 import { apiFetch } from '@/services/api'
 
 const { user, updateUser } = useAuth()
@@ -161,6 +161,12 @@ onMounted(() => {
         <div class="card bg-base-100 shadow-xl">
           <div class="card-body">
             <h3 class="card-title text-lg">Stato Account</h3>
+            <RouterLink to="/users/me/rentals" class="btn btn-primary w-full shadow-lg mt-4 gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Gestisci i miei Annunci
+                </RouterLink>
             <div class="flex items-center gap-2 mt-2">
               <div class="badge badge-success gap-1 text-white">
                 Verificato
