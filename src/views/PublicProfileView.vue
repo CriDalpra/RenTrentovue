@@ -7,14 +7,13 @@ import { products } from '@/data/products'
 const route = useRoute()
 const userId = route.params.id
 
-// 1. Trova l'utente basandosi sull'ID nell'URL
+//Per trovare l'utente guardo ID nell'URL
 const user = computed(() => {
   return users.find(u => u.id == userId)
 })
 
-// 2. Trova tutti i prodotti che appartengono a questo utente
+//Prodotti che appartengono a questo utente
 const userProducts = computed(() => {
-  // Nota: usiamo == invece di === perché l'ID nell'URL è stringa, nei dati è numero
   return products.filter(p => p.owner.id == userId)
 })
 </script>

@@ -11,7 +11,7 @@ const storedUser = localStorage.getItem('user')
 const user = ref(storedUser ? JSON.parse(storedUser) : null)
 
 export function useAuth() {
-  
+
   const login = async (email, password) => {
     try {
       const data = await apiFetch('/authentication', {
@@ -22,17 +22,21 @@ export function useAuth() {
       if (data.success && data.token) {
         localStorage.setItem('token', data.token)
         
-        //dati dell'utente loggato
+        //In base al Token JWT scopro roulo utente
+
+        const tokenPayload = JSON.parse(atob(data.token.split('.')[1]))
+        const userRole = tokenPayload.role // user o admin
+
         const backendUser = await apiFetch('/users/me', { method: 'GET' })
 
-        //adatto l'utente dal DB a qua: userName diventa name
         const adaptedUser = {
             id: backendUser.self ? backendUser.self.replace('renTrentoAPI/users', '') : '',
-            name: backendUser.userName, 
+            name: backendUser.userName,
             email: backendUser.email,
             wallet: backendUser.wallet,
+            role: userRole, //salvo roulo nel frontend
             
-            //Fake datas
+            bio: 'Ciao! Sto usando RenTrento.',
             location: 'Trento',
             phone: '',
             avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${backendUser.userName}`
