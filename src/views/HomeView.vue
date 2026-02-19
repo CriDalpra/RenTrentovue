@@ -13,20 +13,11 @@ const emailInput = ref('')
 const passwordInput = ref('')
 const showPassword = ref(false) // Per mostrare/nascondere la password
 
-// In src/views/HomeView.vue
-
 const handleLogin = () => {
-  // 1. Controlla che i campi siano pieni
   if (emailInput.value.trim() && passwordInput.value.trim()) {
+    login(emailInput.value, passwordInput.value)
     
-    // 2. Estrae il nome e fa il login
-    const username = emailInput.value.split('@')[0]
-    login(username)
-    
-    // 3. AGGIUNGI QUESTA RIGA: Reindirizza al profilo
-    router.push('/home/users/me') 
-    
-  } else {
+  } else {        //redirect viene fatto dentro auth.js solo se il server risponde positivamente!
     alert("Compila entrambi i campi!")
   }
 }

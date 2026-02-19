@@ -1,13 +1,11 @@
 <script setup>
 import { ref } from 'vue'
 import { RouterView, RouterLink, useRouter } from 'vue-router'
-// IMPORTANTE: Assicurati che il percorso sia corretto. 
-// Prima l'abbiamo creato in 'composables', non 'components'.
+
 import { useAuth } from '@/components/auth' 
 import logo from '@/assets/images/logo.png' 
 
 const router = useRouter()
-// Recuperiamo anche la funzione logout
 const { user, logout } = useAuth() 
 const searchQuery = ref('')
 

@@ -1,31 +1,61 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { products } from '@/data/products'
+import { apiFetch } from '@/services/api' // Importiamo la connessione al backend
 
 const route = useRoute()
 
-// 1. Creiamo una proprietà computata che filtra i prodotti in base alla ricerca
-const filteredProducts = computed(() => {
-  const searchTerm = route.query.category?.toLowerCase() || ''
-  
-  if (!searchTerm) {
-    return products // Se non c'è ricerca, mostra tutto
-  }
+//Variabile che conterrà i prodotti
+const products = ref([])
 
-  // Filtra per nome o descrizione
-  return products.filter(p => 
+onMounted(async () => {
+  try {
+    //Scarico i dati dal backend
+    const backendProducts = await apiFetch('/products')
+    
+    //traduco i dati del DB per il Frontend
+    products.value = backendProducts.map(p => {
+      
+      //Estraggo l'ID da 'renTrentoAPI/products12345'
+      //sostituisco la parola chiave con il nulla. resta solo l'ID
+      const extractedId = p.self ? p.self.replace('renTrentoAPI/products', '') : Math.random().toString()
+
+      return {
+        id: extractedId,
+        name: p.productName,                 
+        price: p.productPrice,               
+        description: p.productInfo || 'Descrizione non disponibile nella lista.', 
+        category: p.category,
+        
+        //DATI FINTI!!!
+        image: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp',
+        owner: {
+          id: p.productUserId,
+          name: p.productUserName,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.productUserName}`,
+          rating: 4.5
+        }
+      }
+    })
+  } catch (error) {
+    console.error("Errore nel caricamento prodotti dal server:", error)
+  }
+})
+
+//Ricerca prodotto
+const filteredProducts = computed(() => {
+  const searchTerm = route.query.q?.toLowerCase() || ''
+  if (!searchTerm) return products.value
+  return products.value.filter(p => 
     p.name.toLowerCase().includes(searchTerm) || 
     p.description.toLowerCase().includes(searchTerm)
   )
 })
 
-// 2. Controllo se la ricerca ha prodotto risultati
 const hasResults = computed(() => filteredProducts.value.length > 0)
 
-// 3. Se non ci sono risultati, mostro i "Consigliati" (prodotti di esempio in data/products)
 const displayProducts = computed(() => {
-  return hasResults.value ? filteredProducts.value : products
+  return hasResults.value ? filteredProducts.value : products.value
 })
 </script>
 
