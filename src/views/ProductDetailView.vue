@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { apiFetch } from '@/services/api'
 import { useAuth } from '@/components/auth'
+import scarpaImg from '@/assets/images/scarpa.avif'
 
 const route = useRoute()
 const { user } = useAuth()
@@ -27,7 +28,7 @@ onMounted(async () => {
       price: p.productPrice,
       description: p.productInfo || 'Descrizione non disponibile.',
       category: p.category,
-      image: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp',
+      image: scarpaImg,
       owner: {
         id: ownerId,
         name: p.productUserName,
