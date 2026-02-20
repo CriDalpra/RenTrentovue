@@ -53,7 +53,7 @@ const handleSearch = () => {
                 <span class="badge badge-accent">New</span>
               </RouterLink>
             </li>
-            <li><RouterLink to="/home/account">Impostazioni</RouterLink></li>
+            <li><RouterLink to="/home/users/me">Impostazioni</RouterLink></li>
             <div class="divider my-0"></div> <li><a @click="logout" class="text-error font-bold">Esci</a></li>
           </ul>
 

@@ -1,87 +1,85 @@
 <script setup>
-import { useRoute, RouterLink } from 'vue-router'
-import { computed } from 'vue'
-import { users } from '@/data/users'
-import { products } from '@/data/products'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { apiFetch } from '@/services/api'
 
 const route = useRoute()
-const userId = route.params.id
+const userId = route.params.id ? String(route.params.id).split('/').filter(Boolean).pop() : ''
 
-//Per trovare l'utente guardo ID nell'URL
-const user = computed(() => {
-  return users.find(u => u.id == userId)
-})
+const seller = ref(null)
+const isLoading = ref(true)
+const errorMessage = ref('')
 
-//Prodotti che appartengono a questo utente
-const userProducts = computed(() => {
-  return products.filter(p => p.owner.id == userId)
+onMounted(async () => {
+  if (!userId) {
+    errorMessage.value = "ID utente non valido."
+    isLoading.value = false
+    return
+  }
+
+  try {
+    const userData = await apiFetch(`/users/${userId}`)
+    
+    seller.value = {
+      id: userId,
+      name: userData.userName,
+      email: userData.email,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.userName}`,
+      bio: userData.bio || "Questo utente non ha ancora scritto una biografia."
+    }
+  } catch (error) {
+    console.error("Errore caricamento utente:", error)
+    errorMessage.value = "Impossibile trovare questo utente. Potrebbe essere stato rimosso."
+  } finally {
+    isLoading.value = false
+  }
 })
 </script>
 
 <template>
-  <div class="p-6 max-w-6xl mx-auto">
+  <div class="p-8 max-w-4xl mx-auto">
     
-    <div v-if="user" class="card lg:card-side bg-base-100 shadow-xl mb-10">
-      <figure class="p-6 lg:w-1/4">
-        <div class="avatar">
+    <button @click="$router.back()" class="btn btn-ghost mb-6 gap-2">
+      &larr; Torna indietro
+    </button>
+
+    <div v-if="isLoading" class="flex justify-center py-12">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
+
+    <div v-else-if="seller" class="card bg-base-100 shadow-xl border border-base-200">
+      <div class="card-body items-center text-center">
+        
+        <div class="avatar mb-4">
           <div class="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-            <img :src="user.avatar" :alt="user.name" />
-          </div>
-        </div>
-      </figure>
-      <div class="card-body lg:w-3/4">
-        <div class="flex items-center gap-2">
-          <h1 class="card-title text-3xl">{{ user.name }}</h1>
-          <div v-if="user.verified" class="badge badge-success gap-1 text-white">
-            ✓ Verificato
+            <img :src="seller.avatar" :alt="seller.name" />
           </div>
         </div>
         
-        <div class="flex items-center gap-2 text-warning font-bold my-1">
-          <span>★ {{ user.rating }} / 5.0</span>
-          <span class="text-base-content/40 font-normal text-sm">(Basato su recensioni recenti)</span>
+        <h1 class="card-title text-3xl">{{ seller.name }}</h1>
+        <p class="text-sm opacity-60 mb-4">Utente Verificato</p>
+        
+        <p class="max-w-md italic opacity-80 bg-base-200 p-4 rounded-lg">
+          "{{ seller.bio }}"
+        </p>
+
+        <div class="divider w-full"></div>
+
+        <div class="card-actions">
+          <a :href="`mailto:${seller.email}`" class="btn btn-primary gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            </svg>
+            Contatta l'utente
+          </a>
         </div>
 
-        <p class="py-2 italic">"{{ user.bio }}"</p>
-        
-        <p class="text-sm text-base-content/60">Membro dal: {{ user.joinedDate }}</p>
-        
-        <div class="card-actions justify-end">
-          <button class="btn btn-primary btn-outline btn-sm">Contatta Utente</button>
-        </div>
       </div>
     </div>
 
-    <div v-if="user">
-      <h2 class="text-2xl font-bold mb-6 border-b pb-2">
-        Gli oggetti di {{ user.name.split(' ')[0] }} ({{ userProducts.length }})
-      </h2>
-
-      <div v-if="userProducts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <RouterLink 
-          v-for="product in userProducts" 
-          :key="product.id"
-          :to="{ name: 'product-detail', params: { id: product.id } }"
-          class="card bg-base-100 shadow-xl hover:scale-[1.02] transition-transform duration-200"
-        >
-          <figure class="h-48">
-            <img :src="product.image" class="w-full h-full object-cover" />
-          </figure>
-          <div class="card-body p-4">
-            <h3 class="font-bold text-lg">{{ product.name }}</h3>
-            <p class="text-primary font-bold">€ {{ product.price.toFixed(2) }} <span class="text-xs text-base-content/50">/gg</span></p>
-          </div>
-        </RouterLink>
-      </div>
-
-      <div v-else class="alert">
-        <span>Questo utente non ha oggetti disponibili al momento.</span>
-      </div>
-    </div>
-
-    <div v-else class="alert alert-error">
-      <span>Utente non trovato!</span>
-      <RouterLink to="/" class="btn btn-sm">Torna alla Home</RouterLink>
+    <div v-else class="alert alert-error shadow-lg">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      <span>{{ errorMessage }}</span>
     </div>
 
   </div>

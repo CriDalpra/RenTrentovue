@@ -4,33 +4,26 @@ import { useRoute, RouterLink } from 'vue-router'
 import { apiFetch } from '@/services/api' 
 
 const route = useRoute()
-
-//Variabile che conterrà i prodotti
 const products = ref([])
 
 onMounted(async () => {
   try {
-    //Scarico i dati dal backend
     const backendProducts = await apiFetch('/products')
     
-    //traduco i dati del DB per il Frontend
     products.value = backendProducts.map(p => {
       
-      //Estraggo l'ID da 'renTrentoAPI/products12345'
-      //sostituisco la parola chiave con il nulla. resta solo l'ID
-      const extractedId = p.self ? p.self.replace('renTrentoAPI/products', '') : Math.random().toString()
+      const extractedId = p._id || (p.self ? (p.self.match(/[0-9a-f]{24}/) || [])[0] : '')
+      const ownerId = p.productUserId ? (String(p.productUserId).match(/[0-9a-f]{24}/) || [])[0] : ''
 
       return {
         id: extractedId,
         name: p.productName,                 
         price: p.productPrice,               
-        description: p.productInfo || 'Descrizione non disponibile nella lista.', 
+        description: p.productInfo || 'Descrizione non disponibile.', 
         category: p.category,
-        
-        //DATI FINTI!!!
         image: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp',
         owner: {
-          id: p.productUserId,
+          id: ownerId, 
           name: p.productUserName,
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.productUserName}`,
           rating: 4.5
@@ -42,7 +35,6 @@ onMounted(async () => {
   }
 })
 
-//Ricerca prodotto
 const filteredProducts = computed(() => {
   const searchTerm = route.query.q?.toLowerCase() || ''
   if (!searchTerm) return products.value
@@ -58,6 +50,7 @@ const displayProducts = computed(() => {
   return hasResults.value ? filteredProducts.value : products.value
 })
 </script>
+
 
 <template>
   <div class="p-8">

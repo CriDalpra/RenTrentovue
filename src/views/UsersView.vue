@@ -13,10 +13,13 @@ const formData = reactive({
   location: '',
   bio: ''
 })
-const wallet = ref(0)
 
 const newCategoryName = ref('')
 const categorySuccessMessage = ref('')
+
+// Storico noleggi
+const rentals = ref([])
+const isLoadingRentals = ref(true)
 
 const startEditing = () => {
   if (user.value) {
@@ -38,7 +41,7 @@ const cancelEditing = () => {
   isEditing.value = false
 }
 
-// funzuione per l'admin
+// Funzione per l'admin
 const addCategory = async () => {
   if (!newCategoryName.value.trim()) return
 
@@ -59,9 +62,28 @@ const addCategory = async () => {
   }
 }
 
-//portafoglio finto
+// Carica noleggi effettuati dall'utente (clientId = io)
+const loadMyRentals = async () => {
+  if (!user.value?.id) return
+  isLoadingRentals.value = true
+  try {
+    const data = await apiFetch(`/rentals?clientId=${user.value.id}`)
+    rentals.value = data.reverse()
+  } catch (error) {
+    console.error("Errore caricamento noleggi:", error)
+  } finally {
+    isLoadingRentals.value = false
+  }
+}
+
+const statusLabel = (status) => {
+  if (status === 'active') return { text: 'Attivo', cls: 'badge-success text-white' }
+  if (status === 'finished') return { text: 'Concluso', cls: 'badge-neutral' }
+  return { text: 'Non attivo', cls: 'badge-warning' }
+}
+
 onMounted(() => {
-  wallet.value = (Math.random() * 990 + 10).toFixed(2)
+  loadMyRentals()
 })
 </script>
 
@@ -81,6 +103,7 @@ onMounted(() => {
 
     <div class="flex flex-col md:flex-row gap-6">
       
+      <!-- Colonna sinistra: profilo -->
       <div class="card bg-base-100 shadow-xl flex-1">
         <div class="card-body">
           
@@ -145,6 +168,8 @@ onMounted(() => {
 
         </div>
       </div>
+
+      <!-- Colonna destra: stats + azioni + admin -->
       <div class="flex-1 flex flex-col gap-6">
         
         <div class="stats shadow bg-base-100 w-full">
@@ -153,7 +178,7 @@ onMounted(() => {
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
             <div class="stat-title">Saldo Portafoglio</div>
-            <div class="stat-value text-primary">€ {{ wallet }}</div>
+            <div class="stat-value text-primary">€ {{ user?.wallet?.toFixed(2) || '0.00' }}</div>
             <div class="stat-desc">Ricarica disponibile</div>
           </div>
         </div>
@@ -162,15 +187,13 @@ onMounted(() => {
           <div class="card-body">
             <h3 class="card-title text-lg">Stato Account</h3>
             <RouterLink to="/users/me/rentals" class="btn btn-primary w-full shadow-lg mt-4 gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Gestisci i miei Annunci
-                </RouterLink>
+              </svg>
+              Gestisci i miei Annunci
+            </RouterLink>
             <div class="flex items-center gap-2 mt-2">
-              <div class="badge badge-success gap-1 text-white">
-                Verificato
-              </div>
+              <div class="badge badge-success gap-1 text-white">Verificato</div>
               <span class="text-sm opacity-70">Utente affidabile</span>
             </div>
             <p class="text-xs mt-4 opacity-50">Iscritto dal: 18/02/2026</p>
@@ -204,10 +227,67 @@ onMounted(() => {
               <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               <span>{{ categorySuccessMessage }}</span>
             </div>
-
           </div>
         </div>
+
+      </div>
+    </div>
+
+    <!-- Sezione storico noleggi -->
+    <div class="mt-10">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-primary">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        I miei Noleggi
+      </h2>
+
+      <!-- Loading -->
+      <div v-if="isLoadingRentals" class="flex justify-center py-8">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+
+      <!-- Nessun noleggio -->
+      <div v-else-if="rentals.length === 0" class="alert alert-info shadow-lg opacity-80">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>Non hai ancora effettuato nessun noleggio. Vai ai prodotti e prova subito!</span>
+      </div>
+
+      <!-- Lista noleggi -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div 
+          v-for="rental in rentals" 
+          :key="rental.self" 
+          class="card bg-base-100 shadow border border-base-200 hover:shadow-lg transition-shadow"
+        >
+          <div class="card-body p-5">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="card-title text-base">
+                  {{ rental.productName || 'Prodotto noleggiato' }}
+                </h3>
+                <p class="text-xs opacity-50 mt-1">ID: {{ rental.productId }}</p>
+              </div>
+              <span 
+                class="badge text-xs"
+                :class="statusLabel(rental.status).cls"
+              >
+                {{ statusLabel(rental.status).text }}
+              </span>
+            </div>
+
+            <div class="divider my-2"></div>
+
+            <div class="flex justify-between items-center text-sm">
+              <span class="opacity-60">Prezzo/giorno</span>
+              <span class="font-bold text-primary">
+                € {{ rental.rentalPrice?.toFixed(2) ?? '—' }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+
   </div>
 </template>
